@@ -107,7 +107,8 @@ void draw_char(uint32_t x, uint32_t y, unsigned char c, uint32_t fg, uint32_t bg
     
     for (uint32_t row = 0; row < 8; row++) {
         for (uint32_t col = 0; col < 8; col++) {
-            // Check if pixel is set. Bit 0 is the leftmost pixel for this font data.
+            // Check if pixel is set. Bit 0 is the leftmost pixel (LSB-first).
+            // Top-to-Bottom mapping (y + row).
             if (glyph[row] & (1 << col)) {
                 put_pixel(x + col, y + row, fg);
             } else if (bg != 0x0) { // If background is not transparent

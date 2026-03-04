@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 AS = nasm
-CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -m32 -fno-pie -fno-stack-protector
+CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -m32 -fno-pie -fno-stack-protector -Isrc/kernel -Isrc/drivers -Isrc/drivers/net -Isrc/drivers/input -Isrc/drivers/video -Isrc/gui -Isrc/apps -Isrc/fs
 CXXFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti -m32 -fno-pie -fno-stack-protector
 LDFLAGS = -ffreestanding -O2 -nostdlib -m32 -Wl,-m,elf_i386 -no-pie -Wl,--build-id=none
 
@@ -37,87 +37,87 @@ $(BUILD_DIR)/stage2.bin: $(SRC_DIR)/bootloader/stage2.s
 	mkdir -p $(BUILD_DIR)
 	$(AS) -f bin $< -o $@
 
-$(BUILD_DIR)/boot.o: $(SRC_DIR)/boot.s
+$(BUILD_DIR)/boot.o: $(SRC_DIR)/kernel/boot.s
 	mkdir -p $(BUILD_DIR)
 	$(AS) -f elf32 $< -o $@
 
-$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel.c
+$(BUILD_DIR)/kernel.o: $(SRC_DIR)/kernel/kernel.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/gdt_flush.o: $(SRC_DIR)/gdt_flush.s
+$(BUILD_DIR)/gdt_flush.o: $(SRC_DIR)/kernel/gdt_flush.s
 	mkdir -p $(BUILD_DIR)
 	$(AS) -f elf32 $< -o $@
 
-$(BUILD_DIR)/gdt.o: $(SRC_DIR)/gdt.c
+$(BUILD_DIR)/gdt.o: $(SRC_DIR)/kernel/gdt.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/idt_flush.o: $(SRC_DIR)/idt_flush.s
+$(BUILD_DIR)/idt_flush.o: $(SRC_DIR)/kernel/idt_flush.s
 	mkdir -p $(BUILD_DIR)
 	$(AS) -f elf32 $< -o $@
 
-$(BUILD_DIR)/idt.o: $(SRC_DIR)/idt.c
+$(BUILD_DIR)/idt.o: $(SRC_DIR)/kernel/idt.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/interrupt.o: $(SRC_DIR)/interrupt.s
+$(BUILD_DIR)/interrupt.o: $(SRC_DIR)/kernel/interrupt.s
 	mkdir -p $(BUILD_DIR)
 	$(AS) -f elf32 $< -o $@
 
-$(BUILD_DIR)/isr.o: $(SRC_DIR)/isr.c
+$(BUILD_DIR)/isr.o: $(SRC_DIR)/kernel/isr.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/pic.o: $(SRC_DIR)/pic.c
+$(BUILD_DIR)/pic.o: $(SRC_DIR)/kernel/pic.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/keyboard.o: $(SRC_DIR)/keyboard.c
+$(BUILD_DIR)/keyboard.o: $(SRC_DIR)/drivers/input/keyboard.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/graphics.o: $(SRC_DIR)/graphics.c
+$(BUILD_DIR)/graphics.o: $(SRC_DIR)/drivers/video/graphics.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/font.o: $(SRC_DIR)/font.c
+$(BUILD_DIR)/font.o: $(SRC_DIR)/gui/font.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/gui.o: $(SRC_DIR)/gui.c
+$(BUILD_DIR)/gui.o: $(SRC_DIR)/gui/gui.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/mouse.o: $(SRC_DIR)/mouse.c
+$(BUILD_DIR)/mouse.o: $(SRC_DIR)/drivers/input/mouse.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/vfs.o: $(SRC_DIR)/vfs.c
+$(BUILD_DIR)/vfs.o: $(SRC_DIR)/fs/vfs.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/apps.o: $(SRC_DIR)/apps.c
+$(BUILD_DIR)/apps.o: $(SRC_DIR)/apps/apps.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/login.o: $(SRC_DIR)/login.c
+$(BUILD_DIR)/login.o: $(SRC_DIR)/gui/login.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/desktop.o: $(SRC_DIR)/desktop.c
+$(BUILD_DIR)/desktop.o: $(SRC_DIR)/gui/desktop.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/memory.o: $(SRC_DIR)/memory.c
+$(BUILD_DIR)/memory.o: $(SRC_DIR)/kernel/memory.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/rtl8139.o: $(SRC_DIR)/rtl8139.c
+$(BUILD_DIR)/rtl8139.o: $(SRC_DIR)/drivers/net/rtl8139.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
-$(BUILD_DIR)/icons.o: $(SRC_DIR)/icons.c
+$(BUILD_DIR)/icons.o: $(SRC_DIR)/gui/icons.c
 	mkdir -p $(BUILD_DIR)
 	$(CC) -c $< -o $@ $(CFLAGS)
 
