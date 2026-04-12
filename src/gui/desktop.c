@@ -276,12 +276,20 @@ void desktop_on_mouse_move(int32_t x, int32_t y) {
         case APP_BROWSER:     old_x = g_browser.x;     old_y = g_browser.y;     w = g_browser.width;    h = g_browser.height; break;
     }
 
-    uint32_t new_x = (uint32_t)(x - drag_off_x);
-    uint32_t new_y = (uint32_t)(y - drag_off_y);
+    int32_t unclamped_x = x - drag_off_x;
+    int32_t unclamped_y = y - drag_off_y;
+    int32_t max_x = (int32_t)current_width - (int32_t)w;
+    int32_t max_y = (int32_t)(current_height - TASKBAR_H) - (int32_t)h;
 
-    // Clamp Y to not go under taskbar or above screen
-    if (new_y > current_height - 60) new_y = current_height - 60;
-    if ((int32_t)new_y < 0) new_y = 0;
+    if (max_x < 0) max_x = 0;
+    if (max_y < 0) max_y = 0;
+    if (unclamped_x < 0) unclamped_x = 0;
+    if (unclamped_y < 0) unclamped_y = 0;
+    if (unclamped_x > max_x) unclamped_x = max_x;
+    if (unclamped_y > max_y) unclamped_y = max_y;
+
+    uint32_t new_x = (uint32_t)unclamped_x;
+    uint32_t new_y = (uint32_t)unclamped_y;
 
     switch (dragged_app_id) {
         case APP_TERMINAL:    g_terminal.x = new_x; g_terminal.y = new_y; break;
