@@ -458,12 +458,17 @@ void texteditor_draw(void) {
 
 void texteditor_type(char c) {
     if (!g_texteditor.visible) return;
+
     if (c == '\b') {
-        if (g_texteditor.buf_len > 0) g_texteditor.buf_len--;
-    } else if (g_texteditor.buf_len < 4095) {
+        if (g_texteditor.buf_len > 0) {
+            g_texteditor.buf_len--;
+            g_texteditor.buf[g_texteditor.buf_len] = '\0';
+        }
+    } else if ((c == '\n' || (c >= 32 && c <= 126)) && g_texteditor.buf_len < 4095) {
         g_texteditor.buf[g_texteditor.buf_len++] = c;
         g_texteditor.buf[g_texteditor.buf_len] = '\0';
     }
+
     texteditor_draw();
 }
 
