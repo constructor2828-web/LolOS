@@ -322,7 +322,10 @@ void desktop_keyboard(char c) {
 void desktop_init(void) {
     os_state   = OS_STATE_LOGIN;
     focused_app = APP_TERMINAL;
-    
-    // Initialize Browser
+
+    terminal_init(200, 80, 500, 300);
+    filemanager_init(730, 80, 280, 400);
+    calculator_init(260, 140, 196, 210);
+    texteditor_init(240, 120, 520, 320);
     browser_init(150, 150, 400, 300);
 }

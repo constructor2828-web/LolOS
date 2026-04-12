@@ -11,6 +11,17 @@ calculator_t  g_calculator;
 texteditor_t  g_texteditor;
 browser_t     g_browser;
 
+static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
+    if (!dst || !src || max_len == 0) return;
+
+    uint32_t i = 0;
+    while (src[i] && i + 1 < max_len) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+}
+
 /* ============================================================
  * Shared helpers
  * ============================================================ */
@@ -45,6 +56,8 @@ static void draw_titlebar(uint32_t x, uint32_t y, uint32_t w, const char* title,
 }
 
 static void draw_shadow_box(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t bg) {
+    if (w < 4 || h < 4) return;
+
     // Layered shadow for more depth
     fill_rect(x + 2, y + 2, w, h, 0x202020);
     fill_rect(x + 4, y + 4, w, h, 0x111111);
@@ -420,9 +433,7 @@ void texteditor_init(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
     g_texteditor.buf_len = 0;
     g_texteditor.buf[0]  = '\0';
     g_texteditor.visible = 0;
-    // Set default filename
-    const char* fn = "untitled.txt";
-    int i = 0; while (fn[i]) { g_texteditor.filename[i] = fn[i]; i++; } g_texteditor.filename[i] = '\0';
+    copy_cstr(g_texteditor.filename, "untitled.txt", sizeof(g_texteditor.filename));
 }
 
 void texteditor_draw(void) {
@@ -456,12 +467,17 @@ void texteditor_draw(void) {
 
 void texteditor_type(char c) {
     if (!g_texteditor.visible) return;
+
     if (c == '\b') {
-        if (g_texteditor.buf_len > 0) g_texteditor.buf_len--;
-    } else if (g_texteditor.buf_len < 4095) {
+        if (g_texteditor.buf_len > 0) {
+            g_texteditor.buf_len--;
+            g_texteditor.buf[g_texteditor.buf_len] = '\0';
+        }
+    } else if ((c == '\n' || (c >= 32 && c <= 126)) && g_texteditor.buf_len < 4095) {
         g_texteditor.buf[g_texteditor.buf_len++] = c;
         g_texteditor.buf[g_texteditor.buf_len] = '\0';
     }
+
     texteditor_draw();
 }
 
@@ -475,8 +491,7 @@ void browser_init(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
     g_browser.width   = w;
     g_browser.height  = h;
     g_browser.visible = 0;
-    const char* def_url = "http://www.lolos.org";
-    int i = 0; while (def_url[i]) { g_browser.url[i] = def_url[i]; i++; } g_browser.url[i] = '\0';
+    copy_cstr(g_browser.url, "http://www.lolos.org", sizeof(g_browser.url));
 }
 
 void browser_draw(void) {
