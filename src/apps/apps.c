@@ -16,18 +16,48 @@ browser_t     g_browser;
  * ============================================================ */
 
 static void draw_titlebar(uint32_t x, uint32_t y, uint32_t w, const char* title, uint32_t color) {
-    fill_rect(x, y, w, 24, color);
-    draw_string(x + 6, y + 8, title, 0xFFFFFF, color);
-    // Close (X) button
-    fill_rect(x + w - 20, y + 4, 16, 16, 0xCC2222);
-    draw_rect(x + w - 20, y + 4, 16, 16, 0xAA0000);
-    draw_string(x + w - 16, y + 8, "X", 0xFFFFFF, 0);
+    uint32_t dark = ((color >> 1) & 0x7F7F7F);
+    uint32_t light = color | 0x202020;
+
+    // Soft vertical gradient
+    for (uint32_t row = 0; row < 24; row++) {
+        uint32_t c = (row < 12) ? light : dark;
+        fill_rect(x, y + row, w, 1, c);
+    }
+
+    // Beveled titlebar frame
+    fill_rect(x, y, w, 1, 0xFFFFFF);
+    fill_rect(x, y, 1, 24, 0xFFFFFF);
+    fill_rect(x, y + 23, w, 1, 0x1F1F1F);
+    fill_rect(x + w - 1, y, 1, 24, 0x1F1F1F);
+
+    draw_string(x + 8, y + 8, title, 0xFFFFFF, 0);
+
+    // Close (X) button with raised style
+    uint32_t bx = x + w - 22;
+    uint32_t by = y + 4;
+    fill_rect(bx, by, 16, 16, 0xB03030);
+    fill_rect(bx, by, 16, 1, 0xF07A7A);
+    fill_rect(bx, by, 1, 16, 0xF07A7A);
+    fill_rect(bx, by + 15, 16, 1, 0x6A1111);
+    fill_rect(bx + 15, by, 1, 16, 0x6A1111);
+    draw_string(bx + 4, by + 4, "X", 0xFFFFFF, 0);
 }
 
 static void draw_shadow_box(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t bg) {
-    fill_rect(x + 4, y + 4, w, h, 0x111111); // shadow
+    if (w < 4 || h < 4) return;
+
+    // Layered shadow for more depth
+    fill_rect(x + 2, y + 2, w, h, 0x202020);
+    fill_rect(x + 4, y + 4, w, h, 0x111111);
     fill_rect(x, y, w, h, bg);
-    draw_rect(x, y, w, h, 0x333333);
+    // Classic 3D frame
+    fill_rect(x, y, w, 2, 0xFFFFFF);
+    fill_rect(x, y, 2, h, 0xFFFFFF);
+    fill_rect(x, y + h - 2, w, 2, 0x3A3A3A);
+    fill_rect(x + w - 2, y, 2, h, 0x3A3A3A);
+    fill_rect(x + 1, y + h - 3, w - 2, 1, 0x7A7A7A);
+    fill_rect(x + w - 3, y + 1, 1, h - 2, 0x7A7A7A);
 }
 
 /* ============================================================
