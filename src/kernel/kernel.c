@@ -90,22 +90,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
             mbi->framebuffer_pitch
         );
 
-        /* Draw desktop */
-        draw_desktop();
-
-        /* Draw desktop icons */
-        draw_string(16, 50, "[>]", 0xFFFFFF, 0);
-        draw_string(16, 60, "Terminal", 0xFFFFFF, 0);
-        draw_string(16, 90, "[F]", 0xFFFFFF, 0);
-        draw_string(16, 100, "Files", 0xFFFFFF, 0);
-
-        /* Launch terminal window */
-        terminal_init(200, 80, 500, 300);
-        terminal_draw();
-
-        /* Launch file manager window */
-        filemanager_init(730, 80, 280, 400);
-        filemanager_draw();
+        desktop_init();
 
         print_serial("GUI rendered.\n");
 

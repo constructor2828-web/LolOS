@@ -63,6 +63,8 @@ void texteditor_type(char c);
 typedef struct {
     uint32_t x, y, width, height;
     char     url[256];
+    uint16_t url_len;
+    uint8_t  address_focused;
     uint8_t  visible;
 } browser_t;
 
@@ -70,5 +72,7 @@ extern browser_t g_browser;
 
 void browser_init(uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 void browser_draw(void);
+void browser_click(int32_t x, int32_t y);
+void browser_type(char c);
 
 #endif

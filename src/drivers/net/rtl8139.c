@@ -163,3 +163,12 @@ int rtl8139_receive_packet(void *buffer, uint16_t max_len) {
 
     return copy_len;
 }
+
+int rtl8139_is_available(void) {
+    return net_available;
+}
+
+void rtl8139_get_mac(uint8_t out_mac[6]) {
+    if (!out_mac) return;
+    for (int i = 0; i < 6; i++) out_mac[i] = rtl_mac[i];
+}
