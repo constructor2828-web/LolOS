@@ -11,6 +11,17 @@ calculator_t  g_calculator;
 texteditor_t  g_texteditor;
 browser_t     g_browser;
 
+static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
+    if (!dst || !src || max_len == 0) return;
+
+    uint32_t i = 0;
+    while (src[i] && i + 1 < max_len) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+}
+
 /* ============================================================
  * Shared helpers
  * ============================================================ */
@@ -422,9 +433,7 @@ void texteditor_init(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
     g_texteditor.buf_len = 0;
     g_texteditor.buf[0]  = '\0';
     g_texteditor.visible = 0;
-    // Set default filename
-    const char* fn = "untitled.txt";
-    int i = 0; while (fn[i]) { g_texteditor.filename[i] = fn[i]; i++; } g_texteditor.filename[i] = '\0';
+    copy_cstr(g_texteditor.filename, "untitled.txt", sizeof(g_texteditor.filename));
 }
 
 void texteditor_draw(void) {
@@ -482,8 +491,7 @@ void browser_init(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
     g_browser.width   = w;
     g_browser.height  = h;
     g_browser.visible = 0;
-    const char* def_url = "http://www.lolos.org";
-    int i = 0; while (def_url[i]) { g_browser.url[i] = def_url[i]; i++; } g_browser.url[i] = '\0';
+    copy_cstr(g_browser.url, "http://www.lolos.org", sizeof(g_browser.url));
 }
 
 void browser_draw(void) {
