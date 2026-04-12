@@ -13,6 +13,8 @@ texteditor_t  g_texteditor;
 browser_t     g_browser;
 static char   g_browser_status[80] = "Ready";
 
+#ifndef LOLOS_COPY_CSTR_IMPL
+#define LOLOS_COPY_CSTR_IMPL
 static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
     if (!dst || !src || max_len == 0) return;
 
@@ -23,6 +25,7 @@ static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
     }
     dst[i] = '\0';
 }
+#endif
 
 static int str_contains(const char* haystack, const char* needle) {
     if (!haystack || !needle || !needle[0]) return 0;
@@ -51,17 +54,6 @@ static void extract_host_from_url(const char* url, char* host_out, uint32_t host
     else if (str_starts_with(url, "https://")) i = 8;
     while (url[i] && url[i] != '/' && o + 1 < host_len) host_out[o++] = url[i++];
     host_out[o] = '\0';
-}
-
-static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
-    if (!dst || !src || max_len == 0) return;
-
-    uint32_t i = 0;
-    while (src[i] && i + 1 < max_len) {
-        dst[i] = src[i];
-        i++;
-    }
-    dst[i] = '\0';
 }
 
 /* ============================================================
