@@ -53,6 +53,17 @@ static void extract_host_from_url(const char* url, char* host_out, uint32_t host
     host_out[o] = '\0';
 }
 
+static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
+    if (!dst || !src || max_len == 0) return;
+
+    uint32_t i = 0;
+    while (src[i] && i + 1 < max_len) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+}
+
 /* ============================================================
  * Shared helpers
  * ============================================================ */
