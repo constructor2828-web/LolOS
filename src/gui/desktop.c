@@ -215,7 +215,12 @@ void desktop_on_click(int32_t x, int32_t y) {
         if (hit(x, y, wx + ww - 20, wy + 4, 16, 16)) {
             g_browser.visible = 0; desktop_draw(); return;
         }
-        if (hit(x, y, wx, wy, ww, wh)) { focused_app = APP_BROWSER; draw_taskbar(); return; }
+        if (hit(x, y, wx, wy, ww, wh)) {
+            focused_app = APP_BROWSER;
+            browser_click(x, y);
+            draw_taskbar();
+            return;
+        }
     }
 }
 
@@ -315,6 +320,7 @@ void desktop_keyboard(char c) {
     switch (focused_app) {
         case APP_TERMINAL:   if (g_terminal.visible)    terminal_type(c);   break;
         case APP_TEXTEDITOR: if (g_texteditor.visible)  texteditor_type(c); break;
+        case APP_BROWSER:    if (g_browser.visible)     browser_type(c);    break;
         default: break;
     }
 }

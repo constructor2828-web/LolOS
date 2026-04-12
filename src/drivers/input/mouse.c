@@ -143,6 +143,7 @@ static void mouse_callback(registers_t* regs) {
 
             if (buttons != mouse_buttons) {
                 desktop_on_mouse_button(mouse_x, mouse_y, buttons);
+                swap_buffers();
             }
 
             mouse_buttons = buttons;

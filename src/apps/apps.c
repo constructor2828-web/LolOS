@@ -3,6 +3,7 @@
 #include "font.h"
 #include "vfs.h"
 #include "io.h"
+#include "net_stack.h"
 #include <stdint.h>
 
 terminal_t    g_terminal;
@@ -10,6 +11,47 @@ filemanager_t g_filemanager;
 calculator_t  g_calculator;
 texteditor_t  g_texteditor;
 browser_t     g_browser;
+static char   g_browser_status[80] = "Ready";
+
+static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
+    if (!dst || !src || max_len == 0) return;
+
+    uint32_t i = 0;
+    while (src[i] && i + 1 < max_len) {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+}
+
+static int str_contains(const char* haystack, const char* needle) {
+    if (!haystack || !needle || !needle[0]) return 0;
+    for (uint32_t i = 0; haystack[i]; i++) {
+        uint32_t j = 0;
+        while (needle[j] && haystack[i + j] == needle[j]) j++;
+        if (!needle[j]) return 1;
+    }
+    return 0;
+}
+
+static int str_starts_with(const char* s, const char* prefix) {
+    if (!s || !prefix) return 0;
+    uint32_t i = 0;
+    while (prefix[i]) {
+        if (s[i] != prefix[i]) return 0;
+        i++;
+    }
+    return 1;
+}
+
+static void extract_host_from_url(const char* url, char* host_out, uint32_t host_len) {
+    if (!url || !host_out || host_len == 0) return;
+    uint32_t i = 0, o = 0;
+    if (str_starts_with(url, "http://")) i = 7;
+    else if (str_starts_with(url, "https://")) i = 8;
+    while (url[i] && url[i] != '/' && o + 1 < host_len) host_out[o++] = url[i++];
+    host_out[o] = '\0';
+}
 
 static void copy_cstr(char* dst, const char* src, uint32_t max_len) {
     if (!dst || !src || max_len == 0) return;
@@ -491,7 +533,11 @@ void browser_init(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {
     g_browser.width   = w;
     g_browser.height  = h;
     g_browser.visible = 0;
+    g_browser.address_focused = 0;
     copy_cstr(g_browser.url, "http://www.lolos.org", sizeof(g_browser.url));
+    g_browser.url_len = 0;
+    while (g_browser.url[g_browser.url_len]) g_browser.url_len++;
+    copy_cstr(g_browser_status, "Ready", sizeof(g_browser_status));
 }
 
 void browser_draw(void) {
@@ -502,23 +548,80 @@ void browser_draw(void) {
     draw_titlebar(x, y, w, "LoL Browser", 0x1E88E5);
 
     // Address bar
-    fill_rect(x + 4, y + 26, w - 8, 22, 0xEEEEEE);
-    draw_rect(x + 4, y + 26, w - 8, 22, 0xCCCCCC);
-    draw_string(x + 10, y + 33, g_browser.url, 0x333333, 0xEEEEEE);
+    uint32_t addr_bg = g_browser.address_focused ? 0xFFFFFF : 0xEEEEEE;
+    uint32_t addr_border = g_browser.address_focused ? 0x1E88E5 : 0xCCCCCC;
+    fill_rect(x + 4, y + 26, w - 8, 22, addr_bg);
+    draw_rect(x + 4, y + 26, w - 8, 22, addr_border);
+    draw_string(x + 10, y + 33, g_browser.url, 0x333333, addr_bg);
+    if (g_browser.address_focused) {
+        fill_rect(x + 10 + g_browser.url_len * 8, y + 31, 2, 12, 0x1E88E5);
+    }
 
     // Content area
     fill_rect(x + 4, y + 52, w - 8, h - 56, 0xFFFFFF);
     draw_rect(x + 4, y + 52, w - 8, h - 56, 0xAAAAAA);
+    draw_string(x + 10, y + 58, g_browser_status, 0x555555, 0xFFFFFF);
 
-    draw_string(x + 20, y + 80, "Welcome to the Web!", 0x111111, 0xFFFFFF);
-    draw_string(x + 20, y + 100, "LolOS Browser v0.1", 0x666666, 0xFFFFFF);
-    
-    // Some mock "web" content
-    fill_rect(x + 20, y + 130, 100, 60, 0xBBDEFB);
-    draw_rect(x + 20, y + 130, 100, 60, 0x1976D2);
-    draw_string(x + 30, y + 150, "IMAGE", 0x1976D2, 0xBBDEFB);
-    
-    draw_string(x + 140, y + 130, "Latest News:", 0x000000, 0xFFFFFF);
-    draw_string(x + 140, y + 150, "- System is blazing fast!", 0x2E7D32, 0xFFFFFF);
-    draw_string(x + 140, y + 170, "- Browser is now available.", 0x1565C0, 0xFFFFFF);
+    if (str_contains(g_browser.url, "news")) {
+        draw_string(x + 20, y + 80, "LoLOS News", 0x111111, 0xFFFFFF);
+        draw_string(x + 20, y + 100, " - Kernel and desktop are stable", 0x2E7D32, 0xFFFFFF);
+        draw_string(x + 20, y + 120, " - Browser now supports URL input", 0x1565C0, 0xFFFFFF);
+        draw_string(x + 20, y + 140, " - Type URL and press Enter", 0x444444, 0xFFFFFF);
+    } else if (str_contains(g_browser.url, "files")) {
+        draw_string(x + 20, y + 80, "File portal", 0x111111, 0xFFFFFF);
+        draw_string(x + 20, y + 100, "Use Files app for full file access.", 0x444444, 0xFFFFFF);
+    } else if (str_contains(g_browser.url, ".com") || str_contains(g_browser.url, ".org")) {
+        draw_string(x + 20, y + 80, "External sites are not ready yet.", 0xAA0000, 0xFFFFFF);
+        draw_string(x + 20, y + 100, "Need TCP/IP + DNS + TLS stack first.", 0x333333, 0xFFFFFF);
+        draw_string(x + 20, y + 120, "Current RTL8139 driver is raw packets only.", 0x333333, 0xFFFFFF);
+        draw_string(x + 20, y + 150, "Try local paths: /news or /files", 0x1565C0, 0xFFFFFF);
+    } else {
+        draw_string(x + 20, y + 80, "Welcome to the Web!", 0x111111, 0xFFFFFF);
+        draw_string(x + 20, y + 100, "Try URLs: /news or /files", 0x666666, 0xFFFFFF);
+        fill_rect(x + 20, y + 130, 100, 60, 0xBBDEFB);
+        draw_rect(x + 20, y + 130, 100, 60, 0x1976D2);
+        draw_string(x + 30, y + 150, "IMAGE", 0x1976D2, 0xBBDEFB);
+    }
+}
+
+void browser_click(int32_t cx, int32_t cy) {
+    if (!g_browser.visible) return;
+    uint32_t x = g_browser.x, y = g_browser.y, w = g_browser.width;
+    g_browser.address_focused = (cx >= (int32_t)(x + 4) && cx < (int32_t)(x + w - 4) &&
+                                 cy >= (int32_t)(y + 26) && cy < (int32_t)(y + 48));
+    browser_draw();
+}
+
+void browser_type(char c) {
+    if (!g_browser.visible || !g_browser.address_focused) return;
+    if (c == '\b') {
+        if (g_browser.url_len > 0) {
+            g_browser.url_len--;
+            g_browser.url[g_browser.url_len] = '\0';
+        }
+    } else if (c == '\n') {
+        char host[96];
+        uint8_t ip[4];
+        extract_host_from_url(g_browser.url, host, sizeof(host));
+
+        if (str_starts_with(g_browser.url, "https://")) {
+            if (host[0] && net_dns_resolve(host, ip) == 0) {
+                copy_cstr(g_browser_status, "HTTPS DNS ok (TLS stack pending)", sizeof(g_browser_status));
+            } else {
+                copy_cstr(g_browser_status, "HTTPS blocked: DNS/TLS not ready", sizeof(g_browser_status));
+            }
+        } else if (str_starts_with(g_browser.url, "http://")) {
+            if (host[0] && net_dns_resolve(host, ip) == 0) {
+                copy_cstr(g_browser_status, "HTTP DNS ok (TCP stack pending)", sizeof(g_browser_status));
+            } else {
+                copy_cstr(g_browser_status, "HTTP blocked: DNS/TCP not ready", sizeof(g_browser_status));
+            }
+        } else {
+            copy_cstr(g_browser_status, "Loaded local content", sizeof(g_browser_status));
+        }
+    } else if (c >= 32 && c <= 126 && g_browser.url_len + 1 < (uint16_t)sizeof(g_browser.url)) {
+        g_browser.url[g_browser.url_len++] = c;
+        g_browser.url[g_browser.url_len] = '\0';
+    }
+    browser_draw();
 }
