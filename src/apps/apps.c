@@ -56,7 +56,6 @@ static void draw_titlebar(uint32_t x, uint32_t y, uint32_t w, const char* title,
 }
 
 static void draw_shadow_box(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t bg) {
-    // Merge resolution note: keep both the min-size guard and layered 3D shadow frame.
     if (w < 4 || h < 4) return;
 
     // Layered shadow for more depth
